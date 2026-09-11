@@ -4,7 +4,8 @@ TERMUX_PKG_LICENSE="GPL-2.0"
 TERMUX_PKG_MAINTAINER="@termux"
 TERMUX_PKG_VERSION="1:8.2.5"
 TERMUX_PKG_SRCURL="https://download.qemu.org/qemu-${TERMUX_PKG_VERSION:2}.tar.xz"
-TERMUX_PKG_SHA256=da5fcffc32762820568b828ed430a728864d34d50b6d2f30358597760cbb0523
+TERMUX_PKG_SHA256=6ba0db6422b40698b671911956554db2b6cf04a085731d102c8153406540c74b
+
 TERMUX_PKG_DEPENDS="alsa-lib, dtc, gdk-pixbuf, glib, jack2, gtk3, libbz2, libcairo, libcurl, libdw, libepoxy, libgmp, libgnutls, libiconv, libjpeg-turbo, liblzo, libnettle, libnfs, libpixman, libpng, libslirp, libspice-server, libssh, libusb, libusbredir, libx11, mesa, ncurses, pulseaudio, qemu-common, resolv-conf, sdl2 | sdl2-compat, sdl2-image, virglrenderer, zlib, zstd"
 TERMUX_PKG_BUILD_DEPENDS="libtasn1"
 TERMUX_PKG_ANTI_BUILD_DEPENDS="sdl2-compat"
