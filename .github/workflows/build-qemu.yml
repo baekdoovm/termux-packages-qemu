@@ -1,0 +1,31 @@
+name: Build Custom QEMU 8.2.5
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-qemu-8.2.5-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            ccache-qemu-8.2.5-${{ runner.os }}-
+
+      - name: Build QEMU package inside Termux Docker
+        run: |
+          # -a aarch64 : 안드로이드 ARM64용 타겟
+          # -I : 필요한 의존성 패키지 자동 설치
+          ./scripts/run-docker.sh ./build-package.sh -a aarch64 -I qemu-system-x86-64
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-8.2.5-termux-debs
+          path: output/*.deb
