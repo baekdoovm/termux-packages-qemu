@@ -1,15 +1,14 @@
 TERMUX_PKG_HOMEPAGE=https://www.qemu.org
-TERMUX_PKG_DESCRIPTION="A generic and open source machine emulator and virtualizer"
+TERMUX_PKG_DESCRIPTION="A generic and open source machine emulator and virtualizer (Custom SDL/VNC)"
 TERMUX_PKG_LICENSE="GPL-2.0"
 TERMUX_PKG_MAINTAINER="@termux"
-TERMUX_PKG_VERSION="1:11.0.3"
+TERMUX_PKG_VERSION="1:8.2.5"
 TERMUX_PKG_SRCURL="https://download.qemu.org/qemu-${TERMUX_PKG_VERSION:2}.tar.xz"
 TERMUX_PKG_SHA256=da5fcffc32762820568b828ed430a728864d34d50b6d2f30358597760cbb0523
 TERMUX_PKG_DEPENDS="alsa-lib, dtc, gdk-pixbuf, glib, jack2, gtk3, libbz2, libcairo, libcurl, libdw, libepoxy, libgmp, libgnutls, libiconv, libjpeg-turbo, liblzo, libnettle, libnfs, libpixman, libpng, libslirp, libspice-server, libssh, libusb, libusbredir, libx11, mesa, ncurses, pulseaudio, qemu-common, resolv-conf, sdl2 | sdl2-compat, sdl2-image, virglrenderer, zlib, zstd"
-# Required by configuration script, but I can't find any binary that uses it.
 TERMUX_PKG_BUILD_DEPENDS="libtasn1"
 TERMUX_PKG_ANTI_BUILD_DEPENDS="sdl2-compat"
-# Remove files already present in qemu-utils and qemu-common.
+
 TERMUX_PKG_RM_AFTER_INSTALL="
 bin/elf2dmp
 bin/qemu-edid
@@ -42,7 +41,7 @@ TERMUX_PKG_EXCLUDED_ARCHES="arm, i686"
 TERMUX_PKG_BUILD_IN_SRC=true
 
 termux_step_pre_configure() {
-	# Workaround for https://github.com/termux/termux-packages/issues/12261.
+	# aarch64 세트점프 패치 (Termux NDK 호환용)
 	if [ $TERMUX_ARCH = "aarch64" ]; then
 		rm -f $TERMUX_PKG_BUILDDIR/_lib
 		mkdir -p $TERMUX_PKG_BUILDDIR/_lib
@@ -71,26 +70,18 @@ termux_step_configure() {
 		LDFLAGS+=" -latomic"
 	fi
 
+	# 요청한 타겟만 지정 (x86_64, i386, aarch64, ppc, ppc64)
 	local QEMU_TARGETS=""
-
-	# System emulation.
 	QEMU_TARGETS+="aarch64-softmmu,"
-	QEMU_TARGETS+="arm-softmmu,"
 	QEMU_TARGETS+="i386-softmmu,"
-	QEMU_TARGETS+="m68k-softmmu,"
-	QEMU_TARGETS+="ppc64-softmmu,"
 	QEMU_TARGETS+="ppc-softmmu,"
-	QEMU_TARGETS+="riscv32-softmmu,"
-	QEMU_TARGETS+="riscv64-softmmu,"
+	QEMU_TARGETS+="ppc64-softmmu,"
 	QEMU_TARGETS+="x86_64-softmmu"
 
 	CFLAGS+=" $CPPFLAGS"
 	CXXFLAGS+=" $CPPFLAGS"
 	LDFLAGS+=" -landroid-shmem -llog"
 
-	# Note: using --disable-stack-protector since stack protector
-	# flags already passed by build scripts but we do not want to
-	# override them with what QEMU configure provides.
 	./configure \
 		--prefix="$TERMUX_PREFIX" \
 		--cross-prefix="${TERMUX_HOST_PLATFORM}-" \
@@ -149,7 +140,8 @@ termux_step_configure() {
 
 termux_step_post_make_install() {
 	local i
-	for i in aarch64 arm i386 m68k ppc ppc64 riscv32 riscv64 x86_64; do
+	# 심볼릭 링크 생성도 빌드한 타겟에 맞춰 수정
+	for i in aarch64 i386 ppc ppc64 x86_64; do
 		ln -sfr \
 			"${TERMUX_PREFIX}"/share/man/man1/qemu.1 \
 			"${TERMUX_PREFIX}"/share/man/man1/qemu-system-${i}.1
